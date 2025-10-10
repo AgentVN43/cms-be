@@ -21,12 +21,17 @@ const user_module_1 = require("./user/user.module");
 const blog_module_1 = require("./blog/blog.module");
 const category_module_1 = require("./category/category.module");
 const comment_module_1 = require("./comment/comment.module");
+const config_1 = require("@nestjs/config");
 (0, dotenv_1.config)();
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            config_1.ConfigModule.forRoot({
+                isGlobal: true,
+                envFilePath: '.env',
+            }),
             (0, mongoose_config_1.mongooseConfig)(),
             auth_module_1.AuthModule,
             user_module_1.UserModule,

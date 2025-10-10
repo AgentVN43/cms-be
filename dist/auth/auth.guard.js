@@ -13,7 +13,6 @@ exports.AuthGuard = void 0;
 const common_1 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
 const jwt_1 = require("@nestjs/jwt");
-const constants_1 = require("./constants");
 const auth_service_1 = require("./auth.service");
 const public_decorator_1 = require("./decorators/public.decorator");
 let AuthGuard = class AuthGuard {
@@ -37,7 +36,7 @@ let AuthGuard = class AuthGuard {
         }
         try {
             const payload = await this.jwtService.verifyAsync(token, {
-                secret: constants_1.jwtConstants.secret,
+                secret: process.env.JWT_SECRET,
             });
             request['user'] = await this.authService.findById(payload.sub);
         }

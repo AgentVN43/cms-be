@@ -20,6 +20,11 @@ export class BlogService {
   ) {}
 
   async create(createBlogDto: CreateBlogDto, user: JwtPayload): Promise<Blog> {
+    createBlogDto.slug = slugify(createBlogDto.title, {
+      lower: true,
+      strict: true,
+    });
+
     const createdBlog = new this.blogModel({
       ...createBlogDto,
       author: user._id,
@@ -83,6 +88,15 @@ export class BlogService {
   async getPostById(postId: string): Promise<Blog> {
     const post = await this.blogModel.findById(postId).exec();
     return post;
+  }
+
+  async getPostBySlug(rawSlug: string): Promise<Blog> {
+    const normalizedSlug = slugify(rawSlug, { lower: true, strict: true });
+
+    return this.blogModel
+      .findOne({ slug: { $in: [rawSlug, normalizedSlug] } })
+      .populate('category', 'name')
+      .exec();
   }
 
   async findSimilarBlogs(blog: Blog): Promise<Blog[]> {

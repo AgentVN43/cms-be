@@ -24,6 +24,10 @@ let BlogService = class BlogService {
         this.categoryModel = categoryModel;
     }
     async create(createBlogDto, user) {
+        createBlogDto.slug = (0, slugify_1.default)(createBlogDto.title, {
+            lower: true,
+            strict: true,
+        });
         const createdBlog = new this.blogModel(Object.assign(Object.assign({}, createBlogDto), { author: user._id }));
         return createdBlog.save();
     }
@@ -73,6 +77,13 @@ let BlogService = class BlogService {
     async getPostById(postId) {
         const post = await this.blogModel.findById(postId).exec();
         return post;
+    }
+    async getPostBySlug(rawSlug) {
+        const normalizedSlug = (0, slugify_1.default)(rawSlug, { lower: true, strict: true });
+        return this.blogModel
+            .findOne({ slug: { $in: [rawSlug, normalizedSlug] } })
+            .populate('category', 'name')
+            .exec();
     }
     async findSimilarBlogs(blog) {
         const similarBlogs = await this.blogModel

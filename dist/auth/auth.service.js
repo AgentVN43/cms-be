@@ -43,7 +43,10 @@ let AuthService = class AuthService {
             return null;
         }
         const payload = { name: user.name, sub: user._id };
-        const token = await this.jwtService.signAsync(payload);
+        const token = await this.jwtService.signAsync(payload, {
+            secret: process.env.JWT_SECRET,
+            expiresIn: process.env.JWT_EXPIRING_DATE || '7d',
+        });
         return { token, user };
     }
     async findById(_id) {
@@ -61,8 +64,7 @@ let AuthService = class AuthService {
         if (!existingUser) {
             throw new common_1.NotFoundException('User not found!');
         }
-        if (user.role &&
-            existingUser._id.toString() !== user.toString()) {
+        if (user.role && existingUser._id.toString() !== user.toString()) {
             throw new common_1.UnauthorizedException('You are not authorized to delete this user');
         }
         updates.forEach((update) => {
