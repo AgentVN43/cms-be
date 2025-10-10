@@ -15,7 +15,7 @@ dotenv.config();
     MongooseModule.forFeature([{ name: Auth.name, schema: AuthSchema }]),
     JwtModule.register({
       global: true,
-      secret: process.env.SECRET,
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_EXPIRING_DATE },
     }),
   ],

@@ -12,10 +12,15 @@ import { UserModule } from './user/user.module';
 import { BlogModule } from './blog/blog.module';
 import { CategoryModule } from './category/category.module';
 import { CommentModule } from './comment/comment.module';
+import { ConfigModule } from '@nestjs/config';
 config();
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, 
+      envFilePath: '.env.local',
+    }),
     mongooseConfig(),
     AuthModule,
     UserModule,

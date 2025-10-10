@@ -15,6 +15,7 @@ import { UpdateAuthDto } from './dto/update-auth.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { Auth, AuthDocument } from './entities/auth.entity';
 import { Role } from './entities/auth.entity';
+import { jwtConstants } from './constants';
 
 @Injectable()
 export class AuthService {
@@ -54,8 +55,11 @@ export class AuthService {
       return null;
     }
     const payload = { name: user.name, sub: user._id };
-    // const jwtSecret = 'secret'; // replace with your own secret key
-    const token = await this.jwtService.signAsync(payload);
+    //const jwtSecret = 'secret'; // replace with your own secret key
+    const token = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: process.env.JWT_EXPIRING_DATE || '7d',
+    });
     return { token, user };
   }
 
@@ -67,7 +71,7 @@ export class AuthService {
   async updateUser(
     userId: string,
     updateUserDto: UpdateAuthDto,
-    user: Auth
+    user: Auth,
   ): Promise<Auth> {
     const allowedUpdates = ['name', 'email']; // fields that can be updated
     const updates = Object.keys(updateUserDto); // fields sent in the request body
@@ -85,10 +89,7 @@ export class AuthService {
       throw new NotFoundException('User not found!');
     }
     // Check if user is authorized to delete
-    if (
-      user.role&&
-      existingUser._id.toString() !== user.toString()
-    ) {
+    if (user.role && existingUser._id.toString() !== user.toString()) {
       throw new UnauthorizedException(
         'You are not authorized to delete this user',
       );

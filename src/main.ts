@@ -3,9 +3,12 @@ import { AppModule } from './app.module';
 import * as bodyParser from 'body-parser';
 import helmet from 'helmet';
 import * as dotenv from 'dotenv';
+import { config } from 'dotenv';
+
+config();
 
 async function bootstrap() {
-  dotenv.config({ path: '.env' });
+  dotenv.config({ path: '.env.local' });
   const app = await NestFactory.create(AppModule);
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json());
