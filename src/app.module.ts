@@ -19,7 +19,7 @@ config();
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, 
-      envFilePath: '.env.local',
+      envFilePath: '.env',
     }),
     mongooseConfig(),
     AuthModule,

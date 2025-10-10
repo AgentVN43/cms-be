@@ -26,7 +26,7 @@ AuthModule = __decorate([
             mongoose_1.MongooseModule.forFeature([{ name: auth_entity_1.Auth.name, schema: auth_entity_1.AuthSchema }]),
             jwt_1.JwtModule.register({
                 global: true,
-                secret: process.env.SECRET,
+                secret: process.env.JWT_SECRET,
                 signOptions: { expiresIn: process.env.JWT_EXPIRING_DATE },
             }),
         ],

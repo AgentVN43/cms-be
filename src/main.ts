@@ -8,7 +8,7 @@ import { config } from 'dotenv';
 config();
 
 async function bootstrap() {
-  dotenv.config({ path: '.env.local' });
+  dotenv.config({ path: '.env' });
   const app = await NestFactory.create(AppModule);
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json());
