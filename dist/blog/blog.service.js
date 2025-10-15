@@ -24,13 +24,12 @@ let BlogService = class BlogService {
         this.categoryModel = categoryModel;
     }
     async create(createBlogDto, user) {
-<<<<<<< HEAD
-=======
-        createBlogDto.slug = (0, slugify_1.default)(createBlogDto.title, {
-            lower: true,
-            strict: true,
-        });
->>>>>>> 65eead35e9a591f05d6d2105fbe97db3b137e2e9
+        if (!createBlogDto.slug && createBlogDto.title) {
+            createBlogDto.slug = (0, slugify_1.default)(createBlogDto.title, {
+                lower: true,
+                strict: true,
+            });
+        }
         const createdBlog = new this.blogModel(Object.assign(Object.assign({}, createBlogDto), { author: user._id }));
         return createdBlog.save();
     }
@@ -81,8 +80,6 @@ let BlogService = class BlogService {
         const post = await this.blogModel.findById(postId).exec();
         return post;
     }
-<<<<<<< HEAD
-=======
     async getPostBySlug(rawSlug) {
         const normalizedSlug = (0, slugify_1.default)(rawSlug, { lower: true, strict: true });
         return this.blogModel
@@ -90,7 +87,6 @@ let BlogService = class BlogService {
             .populate('category', 'name')
             .exec();
     }
->>>>>>> 65eead35e9a591f05d6d2105fbe97db3b137e2e9
     async findSimilarBlogs(blog) {
         const similarBlogs = await this.blogModel
             .find({

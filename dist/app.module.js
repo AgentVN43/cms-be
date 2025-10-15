@@ -32,7 +32,7 @@ AppModule = __decorate([
         imports: [
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
-                envFilePath: '.env.local',
+                envFilePath: process.env.NODE_ENV === 'production' ? '.env' : '.env.local',
             }),
             (0, mongoose_config_1.mongooseConfig)(),
             auth_module_1.AuthModule,

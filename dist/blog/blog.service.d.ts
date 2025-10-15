@@ -77,10 +77,7 @@ export declare class BlogService {
     findFeaturedPosts(): Promise<Blog[]>;
     findByIdCategoryAndSlug(id: string, category: string, slug: string): Promise<Blog>;
     getPostById(postId: string): Promise<Blog>;
-<<<<<<< HEAD
-=======
     getPostBySlug(rawSlug: string): Promise<Blog>;
->>>>>>> 65eead35e9a591f05d6d2105fbe97db3b137e2e9
     findSimilarBlogs(blog: Blog): Promise<Blog[]>;
     getBlogsByAuthor(authorId: string): Promise<Blog[]>;
     findByCategory(categoryName: string): Promise<Blog[]>;
