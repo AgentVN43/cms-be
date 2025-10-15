@@ -20,17 +20,17 @@ config();
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true, 
-      envFilePath: '.env.local',
+  isGlobal: true,
+  envFilePath: process.env.NODE_ENV === 'production' ? '.env' : '.env.local',
     }),
     mongooseConfig(),
     AuthModule,
     UserModule,
     BlogModule,
     CategoryModule,
-    CommentModule,
-    MenuModule,
-    PageModule,
+  CommentModule,
+  MenuModule,
+  PageModule,
     // Serve files from the "uploads" directory at the "/uploads" URL
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
@@ -39,10 +39,10 @@ config();
   ],
   controllers: [AppController],
   providers: [
-    AppService,
-    AuthModule,
-    UserModule,
-    PageModule,
+  AppService,
+  AuthModule,
+  UserModule,
+  PageModule,
     {
       provide: APP_FILTER,
       useClass: AnyExceptionFilter,

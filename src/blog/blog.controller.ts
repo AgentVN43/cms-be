@@ -130,7 +130,22 @@ export class BlogController {
     }
     return post;
   }
+  /**
+   * Retrieves a blog post by slug.
+   * @param {string} slug - The slug of the blog post.
+   * @returns {Promise<Blog>} The blog post matching the slug.
+   * @throws {NotFoundException} If no blog post is found.
+   */
+  @Public()
+  @Get('slug/:slug')
+  async getPostBySlug(@Param('slug') slug: string): Promise<Blog> {
+    const post = await this.blogService.getPostBySlug(slug);
 
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+    return post;
+  }
   /**
    * Retrieves a list of blog posts that are similar to the specified blog post.
    *

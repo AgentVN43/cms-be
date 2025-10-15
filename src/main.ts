@@ -8,14 +8,15 @@ import { config } from 'dotenv';
 config();
 
 async function bootstrap() {
-  dotenv.config({ path: '.env.local' });
+  // Load environment file depending on NODE_ENV (use .env.local for non-production)
+  dotenv.config({ path: process.env.NODE_ENV === 'production' ? '.env' : '.env.local' });
   const app = await NestFactory.create(AppModule);
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json());
   app.use(helmet());
   app.enableCors();
 
-  await app.listen(process.env.PORT);
+  await app.listen(process.env.PORT || 5000);
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();

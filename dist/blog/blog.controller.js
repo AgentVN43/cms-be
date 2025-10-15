@@ -61,6 +61,13 @@ let BlogController = class BlogController {
         }
         return post;
     }
+    async getPostBySlug(slug) {
+        const post = await this.blogService.getPostBySlug(slug);
+        if (!post) {
+            throw new common_1.NotFoundException('Post not found');
+        }
+        return post;
+    }
     async findSimilarBlogs(id) {
         const blog = await this.blogService.getPostById(id);
         if (!blog) {
@@ -170,6 +177,14 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], BlogController.prototype, "getPostByIdCategoryAndSlug", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Get)('slug/:slug'),
+    __param(0, (0, common_1.Param)('slug')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], BlogController.prototype, "getPostBySlug", null);
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Get)(':id/similar'),
