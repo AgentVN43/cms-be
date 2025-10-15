@@ -13,6 +13,8 @@ import { BlogModule } from './blog/blog.module';
 import { CategoryModule } from './category/category.module';
 import { CommentModule } from './comment/comment.module';
 import { ConfigModule } from '@nestjs/config';
+import { PageModule } from './page/page.module';
+import { MenuModule } from './menu/menu.module';
 config();
 
 @Module({
@@ -27,6 +29,8 @@ config();
     BlogModule,
     CategoryModule,
     CommentModule,
+    MenuModule,
+    PageModule,
     // Serve files from the "uploads" directory at the "/uploads" URL
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
@@ -38,6 +42,7 @@ config();
     AppService,
     AuthModule,
     UserModule,
+    PageModule,
     {
       provide: APP_FILTER,
       useClass: AnyExceptionFilter,

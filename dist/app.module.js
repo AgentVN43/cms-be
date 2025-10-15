@@ -22,6 +22,8 @@ const blog_module_1 = require("./blog/blog.module");
 const category_module_1 = require("./category/category.module");
 const comment_module_1 = require("./comment/comment.module");
 const config_1 = require("@nestjs/config");
+const page_module_1 = require("./page/page.module");
+const menu_module_1 = require("./menu/menu.module");
 (0, dotenv_1.config)();
 let AppModule = class AppModule {
 };
@@ -38,6 +40,8 @@ AppModule = __decorate([
             blog_module_1.BlogModule,
             category_module_1.CategoryModule,
             comment_module_1.CommentModule,
+            menu_module_1.MenuModule,
+            page_module_1.PageModule,
             serve_static_1.ServeStaticModule.forRoot({
                 rootPath: (0, path_1.join)(__dirname, '..', 'uploads'),
                 serveRoot: '/uploads',
@@ -48,6 +52,7 @@ AppModule = __decorate([
             app_service_1.AppService,
             auth_module_1.AuthModule,
             user_module_1.UserModule,
+            page_module_1.PageModule,
             {
                 provide: core_1.APP_FILTER,
                 useClass: http_exception_filter_1.AnyExceptionFilter,

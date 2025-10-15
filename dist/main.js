@@ -14,7 +14,7 @@ async function bootstrap() {
     app.use(bodyParser.json());
     app.use((0, helmet_1.default)());
     app.enableCors();
-    await app.listen(process.env.PORT || 5000);
+    await app.listen(process.env.PORT);
     console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();
