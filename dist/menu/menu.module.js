@@ -13,11 +13,19 @@ const menu_entity_1 = require("./entities/menu.entity");
 const menu_service_1 = require("./menu.service");
 const menu_controller_1 = require("./menu.controller");
 const menu_admin_controller_1 = require("./menu.admin.controller");
+const blog_entity_1 = require("../blog/entities/blog.entity");
+const page_entity_1 = require("../page/entities/page.entity");
 let MenuModule = class MenuModule {
 };
 MenuModule = __decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: menu_entity_1.Menu.name, schema: menu_entity_1.MenuSchema }])],
+        imports: [
+            mongoose_1.MongooseModule.forFeature([
+                { name: menu_entity_1.Menu.name, schema: menu_entity_1.MenuSchema },
+                { name: blog_entity_1.Blog.name, schema: blog_entity_1.BlogSchema },
+                { name: page_entity_1.Page.name, schema: page_entity_1.PageSchema },
+            ]),
+        ],
         controllers: [menu_controller_1.PublicMenuController, menu_admin_controller_1.MenuController],
         providers: [menu_service_1.MenuService],
         exports: [menu_service_1.MenuService],

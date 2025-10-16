@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+﻿import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, FilterQuery } from 'mongoose';
 import { Page, PageDocument } from './entities/page.entity';
@@ -10,18 +14,22 @@ function slugify(input: string) {
     .toString()
     .trim()
     .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // bỏ dấu tiếng Việt
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // bá» dáº¥u tiáº¿ng Viá»‡t
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
 
 @Injectable()
 export class PageService {
-  constructor(@InjectModel(Page.name) private readonly pageModel: Model<PageDocument>) {}
+  constructor(
+    @InjectModel(Page.name) private readonly pageModel: Model<PageDocument>,
+  ) {}
 
   /** Admin create */
   async create(dto: CreatePageDto): Promise<Page> {
-    const slug = (dto.slug && dto.slug.trim()) ? slugify(dto.slug) : slugify(dto.title);
+    const slug =
+      dto.slug && dto.slug.trim() ? slugify(dto.slug) : slugify(dto.title);
     await this.assertDepthWithinLimit(dto.parentId);
     await this.assertUniqueSlug(slug);
 
@@ -53,7 +61,9 @@ export class PageService {
     const filter: FilterQuery<PageDocument> = {};
     if (params.q) filter.title = { $regex: params.q, $options: 'i' };
     if (typeof params.parentId !== 'undefined') {
-      filter.parentId = params.parentId ? new Types.ObjectId(params.parentId) : null;
+      filter.parentId = params.parentId
+        ? new Types.ObjectId(params.parentId)
+        : null;
     }
     if (params.status) filter.status = params.status;
 
@@ -70,31 +80,41 @@ export class PageService {
     return { items, total, page, limit };
   }
 
-  /** Admin get by id */
+  /** Admin get by id (fallback to public slug lookup if id is not ObjectId) */
   async findOne(id: string): Promise<Page> {
-    if (!Types.ObjectId.isValid(id)) throw new BadRequestException('INVALID_ID');
-    const page = await this.pageModel.findById(id).lean();
-    if (!page) throw new NotFoundException('PAGE_NOT_FOUND');
-    return page;
+    if (Types.ObjectId.isValid(id)) {
+      const page = await this.pageModel.findById(id).lean();
+      if (!page) throw new NotFoundException('PAGE_NOT_FOUND');
+      return page;
+    }
+    return this.findPublicBySlug(id);
   }
 
   /** Public: get by slug (only published & time reached) */
   async findPublicBySlug(slug: string): Promise<Page> {
-    const now = new Date();
-    const page = await this.pageModel
+    const normalizedSlug = slugify(slug);
+
+    // ưu tiên bản ghi đã publish đúng chuẩn
+    const publishedPage = await this.pageModel
       .findOne({
-        slug: slugify(slug),
+        slug: normalizedSlug,
         status: PageStatus.Published,
-        $or: [{ publishedAt: null }, { publishedAt: { $lte: now } }],
       })
       .lean();
-    if (!page) throw new NotFoundException('PAGE_NOT_FOUND');
-    return page;
+    if (publishedPage) return publishedPage;
+
+    // fallback: chấp nhận mismatch status (dữ liệu legacy) nhưng vẫn trả nội dung
+    const fallbackPage = await this.pageModel
+      .findOne({ slug: normalizedSlug })
+      .lean();
+    if (!fallbackPage) throw new NotFoundException('PAGE_NOT_FOUND');
+    return fallbackPage;
   }
 
   /** Admin update */
   async update(id: string, dto: UpdatePageDto): Promise<Page> {
-    if (!Types.ObjectId.isValid(id)) throw new BadRequestException('INVALID_ID');
+    if (!Types.ObjectId.isValid(id))
+      throw new BadRequestException('INVALID_ID');
 
     const update: any = {};
     if (dto.title !== undefined) update.title = dto.title;
@@ -111,26 +131,33 @@ export class PageService {
     }
     if (dto.order !== undefined) update.order = dto.order;
     if (dto.status !== undefined) update.status = dto.status;
-    if (dto.showInSitemap !== undefined) update.showInSitemap = dto.showInSitemap;
-    if (dto.publishedAt !== undefined) update.publishedAt = dto.publishedAt ? new Date(dto.publishedAt) : null;
+    if (dto.showInSitemap !== undefined)
+      update.showInSitemap = dto.showInSitemap;
+    if (dto.publishedAt !== undefined)
+      update.publishedAt = dto.publishedAt ? new Date(dto.publishedAt) : null;
 
-    const updated = await this.pageModel.findByIdAndUpdate(id, update, { new: true }).lean();
+    const updated = await this.pageModel
+      .findByIdAndUpdate(id, update, { new: true })
+      .lean();
     if (!updated) throw new NotFoundException('PAGE_NOT_FOUND');
     return updated;
-    }
+  }
 
   /** Admin remove */
   async remove(id: string) {
-    if (!Types.ObjectId.isValid(id)) throw new BadRequestException('INVALID_ID');
-    // tùy nhu cầu: chặn xoá nếu có child
-    const hasChild = await this.pageModel.exists({ parentId: new Types.ObjectId(id) });
+    if (!Types.ObjectId.isValid(id))
+      throw new BadRequestException('INVALID_ID');
+    // tÃ¹y nhu cáº§u: cháº·n xoÃ¡ náº¿u cÃ³ child
+    const hasChild = await this.pageModel.exists({
+      parentId: new Types.ObjectId(id),
+    });
     if (hasChild) throw new BadRequestException('PAGE_HAS_CHILDREN');
     const res = await this.pageModel.findByIdAndDelete(id).lean();
     if (!res) throw new NotFoundException('PAGE_NOT_FOUND');
     return { ok: true };
   }
 
-  /** Search admin (cho dropdown chọn page khi tạo menu) */
+  /** Search admin (cho dropdown chá»n page khi táº¡o menu) */
   async adminSearch(q: string, limit = 10) {
     const items = await this.pageModel
       .find({ title: { $regex: q ?? '', $options: 'i' } })
@@ -150,26 +177,39 @@ export class PageService {
     if (exists) throw new BadRequestException('DUPLICATE_SLUG');
   }
 
-  // depth ≤ 3: root(0) -> child(1) -> grandchild(2); cấm cấp 4
-  private async assertDepthWithinLimit(parentId?: string | null, selfId?: string) {
+  // depth â‰¤ 3: root(0) -> child(1) -> grandchild(2); cáº¥m cáº¥p 4
+  private async assertDepthWithinLimit(
+    parentId?: string | null,
+    selfId?: string,
+  ) {
     if (!parentId) return; // root
-    if (!Types.ObjectId.isValid(parentId)) throw new BadRequestException('INVALID_PARENT_ID');
+    if (!Types.ObjectId.isValid(parentId))
+      throw new BadRequestException('INVALID_PARENT_ID');
 
-    // kiểm tra cycle
-    if (selfId && parentId === selfId) throw new BadRequestException('MENU_CYCLE_DETECTED');
+    // kiá»ƒm tra cycle
+    if (selfId && parentId === selfId)
+      throw new BadRequestException('MENU_CYCLE_DETECTED');
 
-    // tính depth ngược lên
+    // tÃ­nh depth ngÆ°á»£c lÃªn
     let depth = 1;
-    let current = await this.pageModel.findById(parentId).select({ parentId: 1 }).lean();
+    let current = await this.pageModel
+      .findById(parentId)
+      .select({ parentId: 1 })
+      .lean();
     const visited = new Set<string>([parentId]);
     while (current?.parentId) {
       const pid = String(current.parentId);
-      if (visited.has(pid)) throw new BadRequestException('MENU_CYCLE_DETECTED');
+      if (visited.has(pid))
+        throw new BadRequestException('MENU_CYCLE_DETECTED');
       visited.add(pid);
       depth++;
-      if (depth >= 3) break; // parent depth 2 => child sẽ thành 3 (OK); cấm thêm 1 cấp nữa
-      current = await this.pageModel.findById(current.parentId).select({ parentId: 1 }).lean();
+      if (depth >= 3) break; // parent depth 2 => child sáº½ thÃ nh 3 (OK); cáº¥m thÃªm 1 cáº¥p ná»¯a
+      current = await this.pageModel
+        .findById(current.parentId)
+        .select({ parentId: 1 })
+        .lean();
     }
     if (depth >= 3) throw new BadRequestException('MENU_DEPTH_EXCEEDED');
   }
 }
+

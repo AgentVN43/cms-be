@@ -54,7 +54,9 @@ import { UpdateMenuDto } from './dto/update-menu.dto';
 export declare class MenuController {
     private readonly service;
     constructor(service: MenuService);
-    create(dto: CreateMenuDto): Promise<import("./entities/menu.entity").Menu>;
+    create(dto: CreateMenuDto): Promise<import("./entities/menu.entity").Menu & import("mongoose").Document<any, any, any> & {
+        _id: import("mongoose").Types.ObjectId;
+    }>;
     findAll(q?: string, parentId?: string, status?: MenuStatus, page?: string, limit?: string, sort?: string): Promise<{
         items: (import("mongoose").FlattenMaps<import("./entities/menu.entity").MenuDocument> & {
             _id: import("mongoose").Types.ObjectId;
@@ -67,7 +69,9 @@ export declare class MenuController {
         _id: import("mongoose").Types.ObjectId;
     })[]>;
     findOne(id: string): Promise<import("./entities/menu.entity").Menu>;
-    update(id: string, dto: UpdateMenuDto): Promise<import("./entities/menu.entity").Menu>;
+    update(id: string, dto: UpdateMenuDto): Promise<import("./entities/menu.entity").Menu & import("mongoose").Document<any, any, any> & {
+        _id: import("mongoose").Types.ObjectId;
+    }>;
     remove(id: string): Promise<{
         ok: boolean;
     }>;

@@ -48,10 +48,9 @@
 /// <reference types="mongoose-unique-validator/node_modules/mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose-unique-validator/node_modules/mongoose/types/inferschematype" />
-import { PageService } from './page.service';
-import { CreatePageDto } from './dto/create-page.dto';
+import { CreatePageDto, PageStatus } from './dto/create-page.dto';
 import { UpdatePageDto } from './dto/update-page.dto';
-import { PageStatus } from './dto/create-page.dto';
+import { PageService } from './page.service';
 export declare class PageController {
     private readonly pageService;
     constructor(pageService: PageService);

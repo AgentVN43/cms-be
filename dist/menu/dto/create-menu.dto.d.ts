@@ -11,7 +11,6 @@ export declare enum MenuType {
 export declare class CreateMenuDto {
     label: string;
     type: MenuType;
-    slug?: string;
     targetId?: string;
     url?: string;
     icon?: string;

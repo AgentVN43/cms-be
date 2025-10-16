@@ -23,7 +23,8 @@ function slugify(input) {
         .toString()
         .trim()
         .toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
 }
@@ -33,7 +34,7 @@ let PageService = class PageService {
     }
     async create(dto) {
         var _a, _b, _c;
-        const slug = (dto.slug && dto.slug.trim()) ? slugify(dto.slug) : slugify(dto.title);
+        const slug = dto.slug && dto.slug.trim() ? slugify(dto.slug) : slugify(dto.title);
         await this.assertDepthWithinLimit(dto.parentId);
         await this.assertUniqueSlug(slug);
         const publishedAt = dto.publishedAt ? new Date(dto.publishedAt) : null;
@@ -57,7 +58,9 @@ let PageService = class PageService {
         if (params.q)
             filter.title = { $regex: params.q, $options: 'i' };
         if (typeof params.parentId !== 'undefined') {
-            filter.parentId = params.parentId ? new mongoose_2.Types.ObjectId(params.parentId) : null;
+            filter.parentId = params.parentId
+                ? new mongoose_2.Types.ObjectId(params.parentId)
+                : null;
         }
         if (params.status)
             filter.status = params.status;
@@ -73,25 +76,30 @@ let PageService = class PageService {
         return { items, total, page, limit };
     }
     async findOne(id) {
-        if (!mongoose_2.Types.ObjectId.isValid(id))
-            throw new common_1.BadRequestException('INVALID_ID');
-        const page = await this.pageModel.findById(id).lean();
-        if (!page)
-            throw new common_1.NotFoundException('PAGE_NOT_FOUND');
-        return page;
+        if (mongoose_2.Types.ObjectId.isValid(id)) {
+            const page = await this.pageModel.findById(id).lean();
+            if (!page)
+                throw new common_1.NotFoundException('PAGE_NOT_FOUND');
+            return page;
+        }
+        return this.findPublicBySlug(id);
     }
     async findPublicBySlug(slug) {
-        const now = new Date();
-        const page = await this.pageModel
+        const normalizedSlug = slugify(slug);
+        const publishedPage = await this.pageModel
             .findOne({
-            slug: slugify(slug),
+            slug: normalizedSlug,
             status: create_page_dto_1.PageStatus.Published,
-            $or: [{ publishedAt: null }, { publishedAt: { $lte: now } }],
         })
             .lean();
-        if (!page)
+        if (publishedPage)
+            return publishedPage;
+        const fallbackPage = await this.pageModel
+            .findOne({ slug: normalizedSlug })
+            .lean();
+        if (!fallbackPage)
             throw new common_1.NotFoundException('PAGE_NOT_FOUND');
-        return page;
+        return fallbackPage;
     }
     async update(id, dto) {
         if (!mongoose_2.Types.ObjectId.isValid(id))
@@ -119,7 +127,9 @@ let PageService = class PageService {
             update.showInSitemap = dto.showInSitemap;
         if (dto.publishedAt !== undefined)
             update.publishedAt = dto.publishedAt ? new Date(dto.publishedAt) : null;
-        const updated = await this.pageModel.findByIdAndUpdate(id, update, { new: true }).lean();
+        const updated = await this.pageModel
+            .findByIdAndUpdate(id, update, { new: true })
+            .lean();
         if (!updated)
             throw new common_1.NotFoundException('PAGE_NOT_FOUND');
         return updated;
@@ -127,7 +137,9 @@ let PageService = class PageService {
     async remove(id) {
         if (!mongoose_2.Types.ObjectId.isValid(id))
             throw new common_1.BadRequestException('INVALID_ID');
-        const hasChild = await this.pageModel.exists({ parentId: new mongoose_2.Types.ObjectId(id) });
+        const hasChild = await this.pageModel.exists({
+            parentId: new mongoose_2.Types.ObjectId(id),
+        });
         if (hasChild)
             throw new common_1.BadRequestException('PAGE_HAS_CHILDREN');
         const res = await this.pageModel.findByIdAndDelete(id).lean();
@@ -161,7 +173,10 @@ let PageService = class PageService {
         if (selfId && parentId === selfId)
             throw new common_1.BadRequestException('MENU_CYCLE_DETECTED');
         let depth = 1;
-        let current = await this.pageModel.findById(parentId).select({ parentId: 1 }).lean();
+        let current = await this.pageModel
+            .findById(parentId)
+            .select({ parentId: 1 })
+            .lean();
         const visited = new Set([parentId]);
         while (current === null || current === void 0 ? void 0 : current.parentId) {
             const pid = String(current.parentId);
@@ -171,7 +186,10 @@ let PageService = class PageService {
             depth++;
             if (depth >= 3)
                 break;
-            current = await this.pageModel.findById(current.parentId).select({ parentId: 1 }).lean();
+            current = await this.pageModel
+                .findById(current.parentId)
+                .select({ parentId: 1 })
+                .lean();
         }
         if (depth >= 3)
             throw new common_1.BadRequestException('MENU_DEPTH_EXCEEDED');

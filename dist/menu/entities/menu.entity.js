@@ -20,13 +20,28 @@ __decorate([
     __metadata("design:type", String)
 ], Menu.prototype, "label", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: String, enum: Object.values(create_menu_dto_1.MenuType), required: true, index: true }),
+    (0, mongoose_1.Prop)({
+        type: String,
+        enum: Object.values(create_menu_dto_1.MenuType),
+        required: true,
+        index: true,
+    }),
     __metadata("design:type", String)
 ], Menu.prototype, "type", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: String, unique: true, sparse: true, index: true, trim: true, maxlength: 200 }),
+    (0, mongoose_1.Prop)({ type: String, trim: true, maxlength: 500, index: true }),
     __metadata("design:type", String)
 ], Menu.prototype, "slug", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({
+        type: String,
+        trim: true,
+        maxlength: 200,
+        index: true,
+        default: null,
+    }),
+    __metadata("design:type", String)
+], Menu.prototype, "targetSlug", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, default: null, index: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
@@ -52,7 +67,12 @@ __decorate([
     __metadata("design:type", Array)
 ], Menu.prototype, "visibleRoles", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: String, enum: Object.values(create_menu_dto_1.MenuStatus), default: create_menu_dto_1.MenuStatus.Draft, index: true }),
+    (0, mongoose_1.Prop)({
+        type: String,
+        enum: Object.values(create_menu_dto_1.MenuStatus),
+        default: create_menu_dto_1.MenuStatus.Draft,
+        index: true,
+    }),
     __metadata("design:type", String)
 ], Menu.prototype, "status", void 0);
 __decorate([
@@ -65,9 +85,4 @@ Menu = __decorate([
 exports.Menu = Menu;
 exports.MenuSchema = mongoose_1.SchemaFactory.createForClass(Menu);
 exports.MenuSchema.index({ parentId: 1, order: 1 });
-exports.MenuSchema.pre('save', function (next) {
-    if (this.slug)
-        this.slug = String(this.slug).trim().toLowerCase();
-    next();
-});
 //# sourceMappingURL=menu.entity.js.map

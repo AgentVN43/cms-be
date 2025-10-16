@@ -51,14 +51,19 @@ import { Model, Types } from 'mongoose';
 import { Menu, MenuDocument } from './entities/menu.entity';
 import { CreateMenuDto, MenuStatus } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
+import { PageDocument } from '../page/entities/page.entity';
 export declare class MenuService {
     private readonly model;
-    constructor(model: Model<MenuDocument>);
-    private assertUniqueSlug;
+    private readonly blogModel;
+    private readonly pageModel;
+    constructor(model: Model<MenuDocument>, blogModel: Model<any>, pageModel: Model<PageDocument>);
     private assertDepthWithinLimit;
     private applyPublicFilters;
     private buildSort;
-    create(dto: CreateMenuDto): Promise<Menu>;
+    private buildHref;
+    create(dto: CreateMenuDto): Promise<Menu & import("mongoose").Document<any, any, any> & {
+        _id: Types.ObjectId;
+    }>;
     findAllPublic(q: string | undefined, parentId: string | undefined, page?: number, limit?: number, sort?: string): Promise<{
         items: (import("mongoose").FlattenMaps<MenuDocument> & {
             _id: Types.ObjectId;
@@ -71,7 +76,7 @@ export declare class MenuService {
         _id: Types.ObjectId;
     })[]>;
     findPublicById(id: string): Promise<Menu>;
-    findPublicBySlug(slug: string): Promise<Menu>;
+    findPublicByHref(href: string): Promise<Menu>;
     findAllAdmin(q: string | undefined, parentId: string | undefined, status: MenuStatus | undefined, page?: number, limit?: number, sort?: string): Promise<{
         items: (import("mongoose").FlattenMaps<MenuDocument> & {
             _id: Types.ObjectId;
@@ -84,7 +89,9 @@ export declare class MenuService {
         _id: Types.ObjectId;
     })[]>;
     findOneAdmin(id: string): Promise<Menu>;
-    update(id: string, dto: UpdateMenuDto): Promise<Menu>;
+    update(id: string, dto: UpdateMenuDto): Promise<Menu & import("mongoose").Document<any, any, any> & {
+        _id: Types.ObjectId;
+    }>;
     remove(id: string): Promise<{
         ok: boolean;
     }>;

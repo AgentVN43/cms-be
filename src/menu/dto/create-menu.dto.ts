@@ -1,4 +1,14 @@
-import { IsArray, IsEnum, IsMongoId, IsNumber, IsOptional, IsString, MaxLength, Min, IsIn } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsMongoId,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+  IsIn,
+} from 'class-validator';
 
 export enum MenuStatus {
   Draft = 'draft',
@@ -19,12 +29,6 @@ export class CreateMenuDto {
 
   @IsEnum(MenuType)
   type!: MenuType; // 'post' | 'page' | 'custom'
-
-  // OPTIONALS
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
-  slug?: string; // optional slug snapshot
 
   @IsOptional()
   @IsMongoId()

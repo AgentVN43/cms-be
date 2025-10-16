@@ -54,6 +54,7 @@ export declare class Menu {
     label: string;
     type: MenuType;
     slug?: string | null;
+    targetSlug?: string | null;
     targetId?: Types.ObjectId | null;
     url?: string | null;
     icon?: string | null;

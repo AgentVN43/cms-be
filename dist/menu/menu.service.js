@@ -18,29 +18,21 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const menu_entity_1 = require("./entities/menu.entity");
 const create_menu_dto_1 = require("./dto/create-menu.dto");
-function slugifyVN(input) {
-    return input
-        .toString()
-        .trim()
-        .toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
+const page_entity_1 = require("../page/entities/page.entity");
+function isValidHttpUrl(url) {
+    try {
+        const u = new URL(url);
+        return u.protocol === 'http:' || u.protocol === 'https:';
+    }
+    catch (_a) {
+        return false;
+    }
 }
 let MenuService = class MenuService {
-    constructor(model) {
+    constructor(model, blogModel, pageModel) {
         this.model = model;
-    }
-    async assertUniqueSlug(slug, excludeId) {
-        if (!slug)
-            return;
-        const filter = { slug };
-        if (excludeId && mongoose_2.Types.ObjectId.isValid(excludeId)) {
-            filter._id = { $ne: new mongoose_2.Types.ObjectId(excludeId) };
-        }
-        const exists = await this.model.exists(filter);
-        if (exists)
-            throw new common_1.BadRequestException('DUPLICATE_SLUG');
+        this.blogModel = blogModel;
+        this.pageModel = pageModel;
     }
     async assertDepthWithinLimit(parentId, selfId) {
         if (!parentId)
@@ -51,7 +43,10 @@ let MenuService = class MenuService {
             throw new common_1.BadRequestException('MENU_CYCLE_DETECTED');
         let depth = 1;
         const visited = new Set([parentId]);
-        let current = await this.model.findById(parentId).select({ parentId: 1 }).lean();
+        let current = await this.model
+            .findById(parentId)
+            .select({ parentId: 1 })
+            .lean();
         while (current === null || current === void 0 ? void 0 : current.parentId) {
             const pid = String(current.parentId);
             if (visited.has(pid))
@@ -60,7 +55,10 @@ let MenuService = class MenuService {
             depth++;
             if (depth >= 3)
                 break;
-            current = await this.model.findById(current.parentId).select({ parentId: 1 }).lean();
+            current = await this.model
+                .findById(current.parentId)
+                .select({ parentId: 1 })
+                .lean();
         }
         if (depth >= 3)
             throw new common_1.BadRequestException('MENU_DEPTH_EXCEEDED');
@@ -80,38 +78,45 @@ let MenuService = class MenuService {
                 return { publishedAt: 'desc', createdAt: 'desc' };
         }
     }
+    buildHref(type, targetSlug, url) {
+        if (type === 'custom')
+            return url !== null && url !== void 0 ? url : '#';
+        if (type === 'post')
+            return targetSlug ? `/posts/${targetSlug}` : '#';
+        if (type === 'page')
+            return targetSlug ? `/pages/${targetSlug}` : '#';
+        return '#';
+    }
     async create(dto) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
-        const normalizedSlug = dto.slug ? slugifyVN(dto.slug) : undefined;
-        await this.assertUniqueSlug(normalizedSlug);
-        await this.assertDepthWithinLimit((_a = dto.parentId) !== null && _a !== void 0 ? _a : null);
-        if (dto.type === create_menu_dto_1.MenuType.Custom && !dto.url) {
-            throw new common_1.BadRequestException('URL_REQUIRED_FOR_CUSTOM');
+        var _a, _b;
+        if (typeof dto.parentId !== 'undefined') {
+            await this.assertDepthWithinLimit((_a = dto.parentId) !== null && _a !== void 0 ? _a : null, undefined);
         }
-        if ((dto.type === create_menu_dto_1.MenuType.Post || dto.type === create_menu_dto_1.MenuType.Page) && !dto.targetId) {
-            throw new common_1.BadRequestException('TARGET_ID_REQUIRED');
+        if (dto.type === 'post' || dto.type === 'page') {
+            if (!dto.targetId)
+                throw new common_1.BadRequestException('targetId required');
+            const targetDoc = (await (dto.type === 'post'
+                ? this.blogModel.findById(dto.targetId).select({ slug: 1 }).lean()
+                : this.pageModel
+                    .findById(dto.targetId)
+                    .select({ slug: 1 })
+                    .lean()));
+            if (!targetDoc)
+                throw new common_1.BadRequestException('TARGET_NOT_FOUND');
+            const targetSlug = String((_b = targetDoc.slug) !== null && _b !== void 0 ? _b : '')
+                .trim()
+                .toLowerCase();
+            const doc = await this.model.create(Object.assign(Object.assign({}, dto), { targetId: (targetDoc === null || targetDoc === void 0 ? void 0 : targetDoc._id) instanceof mongoose_2.Types.ObjectId
+                    ? targetDoc._id
+                    : new mongoose_2.Types.ObjectId(dto.targetId), url: null, targetSlug, slug: this.buildHref(dto.type, targetSlug, null) }));
+            return doc.toObject();
         }
-        try {
-            const created = await this.model.create({
-                label: dto.label,
-                type: dto.type,
-                slug: normalizedSlug !== null && normalizedSlug !== void 0 ? normalizedSlug : null,
-                targetId: dto.targetId ? new mongoose_2.Types.ObjectId(dto.targetId) : null,
-                url: (_b = dto.url) !== null && _b !== void 0 ? _b : null,
-                icon: (_c = dto.icon) !== null && _c !== void 0 ? _c : null,
-                parentId: dto.parentId ? new mongoose_2.Types.ObjectId(dto.parentId) : null,
-                order: (_d = dto.order) !== null && _d !== void 0 ? _d : 0,
-                visibleRoles: (_e = dto.visibleRoles) !== null && _e !== void 0 ? _e : [],
-                status: (_f = dto.status) !== null && _f !== void 0 ? _f : create_menu_dto_1.MenuStatus.Draft,
-                publishedAt: (_g = dto.publishedAt) !== null && _g !== void 0 ? _g : null,
-            });
-            return created.toObject();
-        }
-        catch (e) {
-            if ((e === null || e === void 0 ? void 0 : e.code) === 11000 && ((_h = e === null || e === void 0 ? void 0 : e.keyPattern) === null || _h === void 0 ? void 0 : _h.slug))
-                throw new common_1.BadRequestException('DUPLICATE_SLUG');
-            throw e;
-        }
+        if (!dto.url)
+            throw new common_1.BadRequestException('url required');
+        if (!isValidHttpUrl(dto.url))
+            throw new common_1.BadRequestException('INVALID_URL');
+        const doc = await this.model.create(Object.assign(Object.assign({}, dto), { targetId: null, targetSlug: null, slug: dto.url }));
+        return doc.toObject();
     }
     async findAllPublic(q, parentId, page = 1, limit = 20, sort) {
         const filter = {};
@@ -122,25 +127,39 @@ let MenuService = class MenuService {
         }
         const finalFilter = this.applyPublicFilters(filter);
         const [items, total] = await Promise.all([
-            this.model.find(finalFilter).sort(this.buildSort(sort)).skip((page - 1) * limit).limit(limit).lean(),
+            this.model
+                .find(finalFilter)
+                .sort(this.buildSort(sort))
+                .skip(Math.max(0, (page - 1) * Math.max(1, limit)))
+                .limit(Math.max(1, limit))
+                .lean(),
             this.model.countDocuments(finalFilter),
         ]);
         return { items, total, page, limit };
     }
     async searchPublic(q = '', limit = 10) {
-        const filter = this.applyPublicFilters({ label: { $regex: q, $options: 'i' } });
-        const items = await this.model.find(filter).sort({ order: 1, createdAt: -1 }).limit(Math.min(50, Math.max(1, +limit))).select({ label: 1, slug: 1 }).lean();
+        const filter = this.applyPublicFilters({
+            label: { $regex: q, $options: 'i' },
+        });
+        const items = await this.model
+            .find(filter)
+            .sort({ order: 1, createdAt: -1 })
+            .limit(Math.min(50, Math.max(1, +limit)))
+            .select({ label: 1, slug: 1 })
+            .lean();
         return items;
     }
     async findPublicById(id) {
-        const finalFilter = this.applyPublicFilters({ _id: new mongoose_2.Types.ObjectId(id) });
+        const finalFilter = this.applyPublicFilters({
+            _id: new mongoose_2.Types.ObjectId(id),
+        });
         const item = await this.model.findOne(finalFilter).lean();
         if (!item)
             throw new common_1.NotFoundException('MENU_NOT_FOUND');
         return item;
     }
-    async findPublicBySlug(slug) {
-        const finalFilter = this.applyPublicFilters({ slug: slugifyVN(slug) });
+    async findPublicByHref(href) {
+        const finalFilter = this.applyPublicFilters({ slug: href });
         const item = await this.model.findOne(finalFilter).lean();
         if (!item)
             throw new common_1.NotFoundException('MENU_NOT_FOUND');
@@ -156,7 +175,12 @@ let MenuService = class MenuService {
         if (status)
             filter.status = status;
         const [items, total] = await Promise.all([
-            this.model.find(filter).sort(this.buildSort(sort)).skip((page - 1) * limit).limit(limit).lean(),
+            this.model
+                .find(filter)
+                .sort(this.buildSort(sort))
+                .skip(Math.max(0, (page - 1) * Math.max(1, limit)))
+                .limit(Math.max(1, limit))
+                .lean(),
             this.model.countDocuments(filter),
         ]);
         return { items, total, page, limit };
@@ -177,50 +201,58 @@ let MenuService = class MenuService {
         return item;
     }
     async update(id, dto) {
-        var _a, _b, _c, _d, _e, _f;
-        const update = {};
-        if (dto.label !== undefined)
-            update.label = dto.label;
-        if (dto.type !== undefined)
-            update.type = dto.type;
-        if (dto.slug !== undefined) {
-            const normalized = dto.slug ? slugifyVN(dto.slug) : null;
-            await this.assertUniqueSlug(normalized !== null && normalized !== void 0 ? normalized : undefined, id);
-            update.slug = normalized;
+        var _a, _b, _c, _d, _e;
+        const item = await this.model.findById(id);
+        if (!item)
+            throw new common_1.NotFoundException('MENU_NOT_FOUND');
+        if (typeof dto.parentId !== 'undefined') {
+            await this.assertDepthWithinLimit((_a = dto.parentId) !== null && _a !== void 0 ? _a : null, String(item._id));
         }
-        if (dto.targetId !== undefined) {
-            update.targetId = dto.targetId ? new mongoose_2.Types.ObjectId(dto.targetId) : null;
+        const next = Object.assign({}, dto);
+        const nextType = (_b = dto.type) !== null && _b !== void 0 ? _b : item.type;
+        if (nextType === 'post' || nextType === 'page') {
+            const targetId = (_c = dto.targetId) !== null && _c !== void 0 ? _c : item.targetId;
+            if (!targetId)
+                throw new common_1.BadRequestException('targetId required');
+            const resolvedTarget = (await (nextType === 'post'
+                ? this.blogModel.findById(targetId).select({ slug: 1 }).lean()
+                : this.pageModel.findById(targetId).select({ slug: 1 }).lean()));
+            if (!resolvedTarget)
+                throw new common_1.BadRequestException('TARGET_NOT_FOUND');
+            const resolvedId = (resolvedTarget === null || resolvedTarget === void 0 ? void 0 : resolvedTarget._id) instanceof mongoose_2.Types.ObjectId
+                ? resolvedTarget._id
+                : targetId instanceof mongoose_2.Types.ObjectId
+                    ? targetId
+                    : new mongoose_2.Types.ObjectId(String(targetId));
+            const targetSlug = String((_d = resolvedTarget === null || resolvedTarget === void 0 ? void 0 : resolvedTarget.slug) !== null && _d !== void 0 ? _d : '')
+                .trim()
+                .toLowerCase();
+            next.type = nextType;
+            next.targetId = resolvedId;
+            next.targetSlug = targetSlug;
+            next.url = null;
+            next.slug = this.buildHref(nextType, targetSlug, null);
         }
-        if (dto.url !== undefined)
-            update.url = (_a = dto.url) !== null && _a !== void 0 ? _a : null;
-        if (dto.icon !== undefined)
-            update.icon = (_b = dto.icon) !== null && _b !== void 0 ? _b : null;
-        if (dto.parentId !== undefined) {
-            await this.assertDepthWithinLimit((_c = dto.parentId) !== null && _c !== void 0 ? _c : null, id);
-            update.parentId = dto.parentId ? new mongoose_2.Types.ObjectId(dto.parentId) : null;
+        else if (nextType === 'custom') {
+            const url = (_e = dto.url) !== null && _e !== void 0 ? _e : item.url;
+            if (!url)
+                throw new common_1.BadRequestException('url required');
+            if (!isValidHttpUrl(url))
+                throw new common_1.BadRequestException('INVALID_URL');
+            next.type = 'custom';
+            next.url = url;
+            next.targetId = null;
+            next.targetSlug = null;
+            next.slug = url;
         }
-        if (dto.order !== undefined)
-            update.order = dto.order;
-        if (dto.visibleRoles !== undefined)
-            update.visibleRoles = (_d = dto.visibleRoles) !== null && _d !== void 0 ? _d : [];
-        if (dto.status !== undefined)
-            update.status = dto.status;
-        if (dto.publishedAt !== undefined)
-            update.publishedAt = (_e = dto.publishedAt) !== null && _e !== void 0 ? _e : null;
-        try {
-            const updated = await this.model.findByIdAndUpdate(id, update, { new: true }).lean();
-            if (!updated)
-                throw new common_1.NotFoundException('MENU_NOT_FOUND');
-            return updated;
-        }
-        catch (e) {
-            if ((e === null || e === void 0 ? void 0 : e.code) === 11000 && ((_f = e === null || e === void 0 ? void 0 : e.keyPattern) === null || _f === void 0 ? void 0 : _f.slug))
-                throw new common_1.BadRequestException('DUPLICATE_SLUG');
-            throw e;
-        }
+        Object.assign(item, next);
+        await item.save();
+        return item.toObject();
     }
     async remove(id) {
-        const hasChild = await this.model.exists({ parentId: new mongoose_2.Types.ObjectId(id) });
+        const hasChild = await this.model.exists({
+            parentId: new mongoose_2.Types.ObjectId(id),
+        });
         if (hasChild)
             throw new common_1.BadRequestException('MENU_HAS_CHILDREN');
         const res = await this.model.findByIdAndDelete(id).lean();
@@ -232,7 +264,11 @@ let MenuService = class MenuService {
 MenuService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(menu_entity_1.Menu.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __param(1, (0, mongoose_1.InjectModel)('Blog')),
+    __param(2, (0, mongoose_1.InjectModel)(page_entity_1.Page.name)),
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
+        mongoose_2.Model])
 ], MenuService);
 exports.MenuService = MenuService;
 //# sourceMappingURL=menu.service.js.map

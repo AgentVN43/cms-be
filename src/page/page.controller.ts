@@ -1,12 +1,21 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { Public } from '../auth/decorators/public.decorator';
-import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/entities/auth.entity';
-import { PageService } from './page.service';
-import { CreatePageDto } from './dto/create-page.dto';
+import { RolesGuard } from '../auth/roles.guard';
+import { CreatePageDto, PageStatus } from './dto/create-page.dto';
 import { UpdatePageDto } from './dto/update-page.dto';
-import { PageStatus } from './dto/create-page.dto';
+import { PageService } from './page.service';
 
 @Controller('pages')
 export class PageController {
@@ -65,13 +74,13 @@ export class PageController {
   }
 }
 
-// ===== Public Controller =====
+// // ===== Public Controller =====
 @Controller()
 export class PublicPageController {
   constructor(private readonly pageService: PageService) {}
 
   @Public()
-  @Get(':slug((?!pages$).+)')
+  @Get(':slug')
   getPublicBySlug(@Param('slug') slug: string) {
     return this.pageService.findPublicBySlug(slug);
   }

@@ -49,11 +49,11 @@
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose-unique-validator/node_modules/mongoose/types/inferschematype" />
 import { MenuService } from './menu.service';
-import { QueryMenuDto } from './dto/query-menu.dto';
+import { MenuStatus } from './dto/create-menu.dto';
 export declare class PublicMenuController {
     private readonly service;
     constructor(service: MenuService);
-    list(q: QueryMenuDto): Promise<{
+    list(keyword?: string, parentId?: string, page?: number, limit?: number, sort?: string): Promise<{
         items: (import("mongoose").FlattenMaps<import("./entities/menu.entity").MenuDocument> & {
             _id: import("mongoose").Types.ObjectId;
         })[];
@@ -61,9 +61,17 @@ export declare class PublicMenuController {
         page: number;
         limit: number;
     }>;
-    search(q?: string, limit?: string): Promise<(import("mongoose").FlattenMaps<import("./entities/menu.entity").MenuDocument> & {
+    search(q?: string, limit?: number): Promise<(import("mongoose").FlattenMaps<import("./entities/menu.entity").MenuDocument> & {
         _id: import("mongoose").Types.ObjectId;
     })[]>;
+    byHref(href: string): Promise<import("./entities/menu.entity").Menu>;
     byId(id: string): Promise<import("./entities/menu.entity").Menu>;
-    bySlug(slug: string): Promise<import("./entities/menu.entity").Menu>;
+    adminList(q?: string, parentId?: string, status?: MenuStatus, page?: number, limit?: number, sort?: string): Promise<{
+        items: (import("mongoose").FlattenMaps<import("./entities/menu.entity").MenuDocument> & {
+            _id: import("mongoose").Types.ObjectId;
+        })[];
+        total: number;
+        page: number;
+        limit: number;
+    }>;
 }

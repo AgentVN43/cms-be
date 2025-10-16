@@ -9,12 +9,25 @@ export class Menu {
   @Prop({ required: true, trim: true, maxlength: 200 })
   label!: string;
 
-  @Prop({ type: String, enum: Object.values(MenuType), required: true, index: true })
+  @Prop({
+    type: String,
+    enum: Object.values(MenuType),
+    required: true,
+    index: true,
+  })
   type!: MenuType;
 
-  // slug optional + unique sparse
-  @Prop({ type: String, unique: true, sparse: true, index: true, trim: true, maxlength: 200 })
-  slug?: string | null;
+  @Prop({ type: String, trim: true, maxlength: 500, index: true })
+  slug?: string | null; // NOW = href (internal /blogs/...|/pages/... OR external URL)
+
+  @Prop({
+    type: String,
+    trim: true,
+    maxlength: 200,
+    index: true,
+    default: null,
+  })
+  targetSlug?: string | null; // snapshot slug từ nguồn (post/page)
 
   @Prop({ type: Types.ObjectId, default: null, index: true })
   targetId?: Types.ObjectId | null;
@@ -34,7 +47,12 @@ export class Menu {
   @Prop({ type: [String], default: [] })
   visibleRoles!: string[];
 
-  @Prop({ type: String, enum: Object.values(MenuStatus), default: MenuStatus.Draft, index: true })
+  @Prop({
+    type: String,
+    enum: Object.values(MenuStatus),
+    default: MenuStatus.Draft,
+    index: true,
+  })
   status!: MenuStatus;
 
   // timestamp (ms)
@@ -47,9 +65,3 @@ export const MenuSchema = SchemaFactory.createForClass(Menu);
 
 MenuSchema.index({ parentId: 1, order: 1 });
 
-// force lowercase slug on save if present
-MenuSchema.pre('save', function (next) {
-  // @ts-ignore
-  if (this.slug) this.slug = String(this.slug).trim().toLowerCase();
-  next();
-});
