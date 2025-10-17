@@ -18,6 +18,10 @@ const auth_service_1 = require("./auth.service");
 const create_auth_dto_1 = require("./dto/create-auth.dto");
 const login_user_dto_1 = require("./dto/login-user.dto");
 const public_decorator_1 = require("./decorators/public.decorator");
+const roles_guard_1 = require("./roles.guard");
+const roles_decorator_1 = require("./decorators/roles.decorator");
+const auth_entity_1 = require("./entities/auth.entity");
+const common_2 = require("@nestjs/common");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -45,6 +49,9 @@ let AuthController = class AuthController {
         const userId = req.user.id;
         const result = await this.authService.updateUserPassword(userId, oldPassword, newPassword);
         return result;
+    }
+    async getImageKitAuth() {
+        return this.authService.generateImageKitAuth();
     }
 };
 __decorate([
@@ -89,6 +96,14 @@ __decorate([
     __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "changePassword", null);
+__decorate([
+    (0, common_2.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(auth_entity_1.Role.Admin),
+    (0, common_1.Get)('imagekit-auth'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "getImageKitAuth", null);
 AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

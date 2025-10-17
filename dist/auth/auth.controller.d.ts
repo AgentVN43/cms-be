@@ -17,4 +17,11 @@ export declare class AuthController {
     getProfile(req: any): any;
     updateUser(id: string, UpdateAuthDto: any, req: any): Promise<Auth>;
     changePassword(oldPassword: string, newPassword: string, req: any): Promise<Auth>;
+    getImageKitAuth(): Promise<{
+        token: string;
+        expire: number;
+        signature: string;
+        publicKey: string;
+        urlEndpoint: string;
+    }>;
 }

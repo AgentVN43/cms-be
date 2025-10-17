@@ -109,4 +109,11 @@ Logs in a user and returns a JWT token if the login credentials are valid.
 
     return result;
   }
+
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @Get('imagekit-auth')
+  async getImageKitAuth() {
+    return this.authService.generateImageKitAuth();
+  }
 }

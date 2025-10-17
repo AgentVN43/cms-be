@@ -16,6 +16,7 @@ exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("mongoose");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const mongoose_2 = require("@nestjs/mongoose");
 const jwt_1 = require("@nestjs/jwt");
 const auth_entity_1 = require("./entities/auth.entity");
@@ -88,6 +89,27 @@ let AuthService = class AuthService {
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
         const updatedUser = await this.authModel.findByIdAndUpdate(userId, { password: hashedNewPassword }, { new: true });
         return updatedUser;
+    }
+    async generateImageKitAuth() {
+        const publicKey = process.env.IMAGEKIT_PUBLIC_KEY || process.env.IMAGE_KIT_PUBLIC_KEY;
+        const privateKey = process.env.IMAGEKIT_PRIVATE_KEY || process.env.IMAGE_KIT_PRIVATE_KEY;
+        const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT || process.env.IMAGE_KIT_URL_ENDPOINT;
+        if (!publicKey || !privateKey) {
+            throw new common_1.BadRequestException('ImageKit keys are not configured on the server');
+        }
+        const token = crypto.randomBytes(24).toString('hex');
+        const expire = Math.floor(Date.now() / 1000) + 60 * 5;
+        const signature = crypto
+            .createHmac('sha1', privateKey)
+            .update(token + expire)
+            .digest('hex');
+        return {
+            token,
+            expire,
+            signature,
+            publicKey,
+            urlEndpoint,
+        };
     }
 };
 AuthService = __decorate([

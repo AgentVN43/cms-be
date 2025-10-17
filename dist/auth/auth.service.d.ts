@@ -16,4 +16,11 @@ export declare class AuthService {
     findById(_id: string): Promise<Auth>;
     updateUser(userId: string, updateUserDto: UpdateAuthDto, user: Auth): Promise<Auth>;
     updateUserPassword(userId: string, oldPassword: string, newPassword: string): Promise<Auth>;
+    generateImageKitAuth(): Promise<{
+        token: string;
+        expire: number;
+        signature: string;
+        publicKey: string;
+        urlEndpoint: string;
+    }>;
 }

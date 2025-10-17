@@ -7,6 +7,7 @@ import {
 
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 
@@ -139,5 +140,35 @@ export class AuthService {
     );
 
     return updatedUser;
+  }
+
+  async generateImageKitAuth() {
+    const publicKey =
+      process.env.IMAGEKIT_PUBLIC_KEY || process.env.IMAGE_KIT_PUBLIC_KEY;
+    const privateKey =
+      process.env.IMAGEKIT_PRIVATE_KEY || process.env.IMAGE_KIT_PRIVATE_KEY;
+    const urlEndpoint =
+      process.env.IMAGEKIT_URL_ENDPOINT || process.env.IMAGE_KIT_URL_ENDPOINT;
+
+    if (!publicKey || !privateKey) {
+      throw new BadRequestException(
+        'ImageKit keys are not configured on the server',
+      );
+    }
+
+    const token = crypto.randomBytes(24).toString('hex');
+    const expire = Math.floor(Date.now() / 1000) + 60 * 5;
+    const signature = crypto
+      .createHmac('sha1', privateKey)
+      .update(token + expire)
+      .digest('hex');
+
+    return {
+      token,
+      expire,
+      signature,
+      publicKey,
+      urlEndpoint,
+    };
   }
 }
