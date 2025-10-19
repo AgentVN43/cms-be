@@ -41,7 +41,6 @@ export class BlogController {
    *
    * This method requires the user to have admin or guest role. It accepts a file object containing the image and a DTO object containing the blog post details. It returns the created blog post with a URL to the uploaded image.
    *
-   * @param {Express.Multer.File} file - The image file to upload.
    * @param {CreateBlogDto} createBlogDto - The DTO object containing the blog post details.
    * @param {Request} req - The Express request object containing the user details.
    * @returns {Promise<Blog>} - The created blog post with a URL to the uploaded image.
@@ -50,22 +49,19 @@ export class BlogController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(Role.Admin, Role.Guest)
-  @UseInterceptors(FileInterceptor('imageUrl'))
   async create(
-    @UploadedFile() file: Express.Multer.File,
     @Body() createBlogDto: CreateBlogDto,
     @Request() req,
   ): Promise<Blog> {
     try {
-      createBlogDto.imageUrl = file.path;
-
       const savedBlogPost = await this.blogService.create(
         createBlogDto,
         req.user,
       );
-      savedBlogPost.imageUrl = `${req.protocol}://${req.get('host')}/${
-        savedBlogPost.imageUrl
-      }`;
+      console.log(
+        '🚀 ~ BlogController ~ create ~ savedBlogPost:',
+        savedBlogPost,
+      );
 
       return savedBlogPost;
     } catch (error) {
@@ -146,6 +142,18 @@ export class BlogController {
     }
     return post;
   }
+
+  @Public()
+  @Get(':id')
+  async findBlogs(@Param('id') id: string): Promise<Blog> {
+    const blog = await this.blogService.getPostById(id);
+    if (!blog) {
+      throw new NotFoundException('Blog not found');
+    }
+
+    return blog;
+  }
+
   /**
    * Retrieves a list of blog posts that are similar to the specified blog post.
    *

@@ -23,17 +23,15 @@ const public_decorator_1 = require("../auth/decorators/public.decorator");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const comment_service_1 = require("../comment/comment.service");
 const mongodb_1 = require("mongodb");
-const platform_express_1 = require("@nestjs/platform-express");
 let BlogController = class BlogController {
     constructor(blogService, commentService) {
         this.blogService = blogService;
         this.commentService = commentService;
     }
-    async create(file, createBlogDto, req) {
+    async create(createBlogDto, req) {
         try {
-            createBlogDto.imageUrl = file.path;
             const savedBlogPost = await this.blogService.create(createBlogDto, req.user);
-            savedBlogPost.imageUrl = `${req.protocol}://${req.get('host')}/${savedBlogPost.imageUrl}`;
+            console.log('🚀 ~ BlogController ~ create ~ savedBlogPost:', savedBlogPost);
             return savedBlogPost;
         }
         catch (error) {
@@ -67,6 +65,13 @@ let BlogController = class BlogController {
             throw new common_1.NotFoundException('Post not found');
         }
         return post;
+    }
+    async findBlogs(id) {
+        const blog = await this.blogService.getPostById(id);
+        if (!blog) {
+            throw new common_1.NotFoundException('Blog not found');
+        }
+        return blog;
     }
     async findSimilarBlogs(id) {
         const blog = await this.blogService.getPostById(id);
@@ -134,12 +139,10 @@ __decorate([
     (0, common_1.Post)(),
     (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(auth_entity_1.Role.Admin, auth_entity_1.Role.Guest),
-    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('imageUrl')),
-    __param(0, (0, common_1.UploadedFile)()),
-    __param(1, (0, common_1.Body)()),
-    __param(2, (0, common_1.Request)()),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, create_blog_dto_1.CreateBlogDto, Object]),
+    __metadata("design:paramtypes", [create_blog_dto_1.CreateBlogDto, Object]),
     __metadata("design:returntype", Promise)
 ], BlogController.prototype, "create", null);
 __decorate([
@@ -185,6 +188,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], BlogController.prototype, "getPostBySlug", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], BlogController.prototype, "findBlogs", null);
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Get)(':id/similar'),

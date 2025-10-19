@@ -1,4 +1,3 @@
-/// <reference types="multer" />
 /// <reference types="mongoose/types/aggregate" />
 /// <reference types="mongoose/types/callback" />
 /// <reference types="mongoose/types/collection" />
@@ -58,7 +57,7 @@ export declare class BlogController {
     private readonly blogService;
     private readonly commentService;
     constructor(blogService: BlogService, commentService: CommentService);
-    create(file: Express.Multer.File, createBlogDto: CreateBlogDto, req: any): Promise<Blog>;
+    create(createBlogDto: CreateBlogDto, req: any): Promise<Blog>;
     getAll(page: number, limit: number): Promise<{
         data: (import("mongoose").Document<unknown, {}, Blog> & Omit<Blog & {
             _id: import("mongoose").Types.ObjectId;
@@ -78,6 +77,7 @@ export declare class BlogController {
     getFeaturedPosts(): Promise<Blog[]>;
     getPostByIdCategoryAndSlug(id: string, category: string, slug: string): Promise<Blog>;
     getPostBySlug(slug: string): Promise<Blog>;
+    findBlogs(id: string): Promise<Blog>;
     findSimilarBlogs(id: string): Promise<Blog[]>;
     getBlogsByAuthor(authorId: string): Promise<Blog[]>;
     getBlogsByCategory(categoryName: string): Promise<Blog[]>;
