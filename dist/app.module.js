@@ -24,6 +24,7 @@ const comment_module_1 = require("./comment/comment.module");
 const config_1 = require("@nestjs/config");
 const page_module_1 = require("./page/page.module");
 const menu_module_1 = require("./menu/menu.module");
+const settings_module_1 = require("./setting/settings.module");
 (0, dotenv_1.config)();
 let AppModule = class AppModule {
 };
@@ -42,6 +43,7 @@ AppModule = __decorate([
             comment_module_1.CommentModule,
             menu_module_1.MenuModule,
             page_module_1.PageModule,
+            settings_module_1.SettingsModule,
             serve_static_1.ServeStaticModule.forRoot({
                 rootPath: (0, path_1.join)(__dirname, '..', 'uploads'),
                 serveRoot: '/uploads',
