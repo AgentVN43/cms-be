@@ -78,7 +78,7 @@ export class CategoryController {
   @Patch(':id')
   async updateCategory(
     @Param('id') id: string,
-    @Body() update: Partial<Category>,
+    @Body() update: UpdateCategoryDto,
   ) {
     const category = await this.categoryService.updateCategory(id, update);
     return category;
@@ -100,3 +100,4 @@ export class CategoryController {
     return { message: `Category with ID ${id} successfully deleted` };
   }
 }
+

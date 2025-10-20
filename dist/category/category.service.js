@@ -16,40 +16,106 @@ exports.CategoryService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("mongoose");
 const mongoose_2 = require("@nestjs/mongoose");
+const category_entity_1 = require("./entities/category.entity");
 let CategoryService = class CategoryService {
     constructor(categoryModel) {
         this.categoryModel = categoryModel;
     }
+    normaliseParentId(parentId) {
+        if (parentId === undefined || parentId === null) {
+            return null;
+        }
+        const trimmed = `${parentId}`.trim();
+        return trimmed.length === 0 ? null : trimmed;
+    }
+    async resolveHierarchy(parentId, currentId) {
+        const normalisedParentId = this.normaliseParentId(parentId);
+        if (!normalisedParentId) {
+            return { parentId: null, ancestors: [], depth: 0 };
+        }
+        const parent = await this.categoryModel.findById(normalisedParentId);
+        if (!parent) {
+            throw new common_1.BadRequestException('Parent category not found');
+        }
+        if (parent.depth >= 2) {
+            throw new common_1.BadRequestException('Maximum category depth (3 levels) exceeded');
+        }
+        if (currentId && parent._id.equals(currentId)) {
+            throw new common_1.BadRequestException('Category cannot be its own parent');
+        }
+        if (currentId && parent.ancestors.some((ancestorId) => ancestorId.equals(currentId))) {
+            throw new common_1.BadRequestException('Cannot set a child category as parent');
+        }
+        return {
+            parentId: parent._id,
+            ancestors: [...parent.ancestors, parent._id],
+            depth: parent.depth + 1,
+        };
+    }
     async createCategory(createCategoryDto, authorId) {
-        const createdCategory = new this.categoryModel(Object.assign(Object.assign({}, createCategoryDto), { author: authorId }));
-        return createdCategory.save();
+        const hierarchy = await this.resolveHierarchy(createCategoryDto.parentId);
+        const category = new this.categoryModel({
+            name: createCategoryDto.name,
+            author: authorId,
+            parentId: hierarchy.parentId,
+            ancestors: hierarchy.ancestors,
+            depth: hierarchy.depth,
+        });
+        return category.save();
     }
     async findAll() {
-        return this.categoryModel.find();
+        return this.categoryModel.find().sort({ depth: 1, name: 1 }).lean();
     }
     async findOne(id) {
-        return this.categoryModel.findById(id);
-    }
-    async updateCategory(id, update) {
-        const category = await this.categoryModel
-            .findByIdAndUpdate(id, update, { new: true })
-            .exec();
+        const category = await this.categoryModel.findById(id).lean();
         if (!category) {
             throw new common_1.NotFoundException(`Category with ID ${id} not found`);
         }
         return category;
     }
-    async deleteCategory(id) {
-        const category = await this.categoryModel.findByIdAndDelete(id).exec();
-        if (!category) {
-            return null;
+    async updateDescendants(root, ancestors, depth) {
+        const children = await this.categoryModel.find({ parentId: root._id });
+        for (const child of children) {
+            child.ancestors = [...ancestors, root._id];
+            child.depth = depth + 1;
+            await child.save();
+            await this.updateDescendants(child, child.ancestors, child.depth);
         }
+    }
+    async updateCategory(id, updateDto) {
+        const category = await this.categoryModel.findById(id);
+        if (!category) {
+            throw new common_1.NotFoundException(`Category with ID ${id} not found`);
+        }
+        if (updateDto.name) {
+            category.name = updateDto.name;
+        }
+        if (typeof updateDto.parentId !== 'undefined') {
+            const hierarchy = await this.resolveHierarchy(updateDto.parentId, category._id);
+            category.parentId = hierarchy.parentId;
+            category.ancestors = hierarchy.ancestors;
+            category.depth = hierarchy.depth;
+            await this.updateDescendants(category, category.ancestors, category.depth);
+        }
+        await category.save();
+        return category;
+    }
+    async deleteCategory(id) {
+        const category = await this.categoryModel.findById(id);
+        if (!category) {
+            throw new common_1.NotFoundException(`Category with ID ${id} not found`);
+        }
+        const hasChildren = await this.categoryModel.exists({ parentId: category._id });
+        if (hasChildren) {
+            throw new common_1.BadRequestException('Cannot delete category that has child categories');
+        }
+        await category.deleteOne();
         return category;
     }
 };
 CategoryService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_2.InjectModel)('Category')),
+    __param(0, (0, mongoose_2.InjectModel)(category_entity_1.Category.name)),
     __metadata("design:paramtypes", [mongoose_1.Model])
 ], CategoryService);
 exports.CategoryService = CategoryService;

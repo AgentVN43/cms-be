@@ -16,6 +16,7 @@ exports.CategoryController = void 0;
 const common_1 = require("@nestjs/common");
 const category_service_1 = require("./category.service");
 const create_category_dto_1 = require("./dto/create-category.dto");
+const update_category_dto_1 = require("./dto/update-category.dto");
 const roles_guard_1 = require("../auth/roles.guard");
 const auth_entity_1 = require("../auth/entities/auth.entity");
 const public_decorator_1 = require("../auth/decorators/public.decorator");
@@ -76,7 +77,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, update_category_dto_1.UpdateCategoryDto]),
     __metadata("design:returntype", Promise)
 ], CategoryController.prototype, "updateCategory", null);
 __decorate([

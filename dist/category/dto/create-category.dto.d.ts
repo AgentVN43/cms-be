@@ -1,4 +1,4 @@
 export declare class CreateCategoryDto {
-    readonly title: string;
-    readonly author: string;
+    readonly name: string;
+    readonly parentId?: string;
 }

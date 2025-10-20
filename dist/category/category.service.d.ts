@@ -47,17 +47,21 @@
 /// <reference types="mongoose-unique-validator/node_modules/mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose-unique-validator/node_modules/mongoose/types/inferschematype" />
+import { Model, Types } from 'mongoose';
 import { CreateCategoryDto } from './dto/create-category.dto';
-import { Model } from 'mongoose';
-import { CategoryDocument, Category } from './entities/category.entity';
+import { UpdateCategoryDto } from './dto/update-category.dto';
+import { Category, CategoryDocument } from './entities/category.entity';
 export declare class CategoryService {
     private readonly categoryModel;
     constructor(categoryModel: Model<CategoryDocument>);
+    private normaliseParentId;
+    private resolveHierarchy;
     createCategory(createCategoryDto: CreateCategoryDto, authorId: string): Promise<import("mongoose").Document<unknown, {}, CategoryDocument> & Omit<Category & import("mongoose").Document<any, any, any> & {
-        _id: import("mongoose").Types.ObjectId;
+        _id: Types.ObjectId;
     }, never>>;
     findAll(): Promise<Category[]>;
     findOne(id: string): Promise<Category>;
-    updateCategory(id: string, update: Partial<Category>): Promise<Category>;
+    private updateDescendants;
+    updateCategory(id: string, updateDto: UpdateCategoryDto): Promise<Category>;
     deleteCategory(id: string): Promise<Category>;
 }

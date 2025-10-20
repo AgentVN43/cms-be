@@ -47,17 +47,21 @@
 /// <reference types="mongoose-unique-validator/node_modules/mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose-unique-validator/node_modules/mongoose/types/inferschematype" />
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { User } from '../../user/entities/user.entity';
 export type CategoryDocument = Category & Document;
 export declare class Category {
     name: string;
     author: User;
+    slug: string;
+    parentId?: Types.ObjectId | null;
+    ancestors: Types.ObjectId[];
+    depth: number;
     createdAt: Date;
     updatedAt: Date;
 }
 export declare const CategorySchema: import("mongoose").Schema<Category, import("mongoose").Model<Category, any, any, any, Document<unknown, any, Category> & Omit<Category & {
-    _id: import("mongoose").Types.ObjectId;
+    _id: Types.ObjectId;
 }, never>, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Category, Document<unknown, {}, import("mongoose").FlatRecord<Category>> & Omit<import("mongoose").FlatRecord<Category> & {
-    _id: import("mongoose").Types.ObjectId;
+    _id: Types.ObjectId;
 }, never>>;

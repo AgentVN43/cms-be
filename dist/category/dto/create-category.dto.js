@@ -17,11 +17,11 @@ __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], CreateCategoryDto.prototype, "title", void 0);
+], CreateCategoryDto.prototype, "name", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsMongoId)({ message: 'parentId must be a valid MongoId' }),
     __metadata("design:type", String)
-], CreateCategoryDto.prototype, "author", void 0);
+], CreateCategoryDto.prototype, "parentId", void 0);
 exports.CreateCategoryDto = CreateCategoryDto;
 //# sourceMappingURL=create-category.dto.js.map

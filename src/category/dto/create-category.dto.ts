@@ -1,11 +1,11 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsMongoId } from 'class-validator';
 
 export class CreateCategoryDto {
   @IsString()
   @IsNotEmpty()
-  readonly title: string;
+  readonly name: string;
 
-  @IsString()
-  @IsNotEmpty()
-  readonly author: string;
+  @IsOptional()
+  @IsMongoId({ message: 'parentId must be a valid MongoId' })
+  readonly parentId?: string;
 }
