@@ -5,7 +5,8 @@ import { Model } from 'mongoose';
 import { Settings, SettingsDocument } from './entities/settings.entity';
 import { UpdateSettingsDto, PublicSettingsDto } from './dto/settings.dto';
 import { SETTINGS_KEY, DEFAULT_SETTINGS } from './settings.defaults';
-import _ from 'lodash';
+import * as _ from 'lodash';
+const next = _.merge({}, DEFAULT_SETTINGS);
 
 @Injectable()
 export class SettingsService {
