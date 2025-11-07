@@ -10,6 +10,7 @@ const dotenv_1 = require("dotenv");
 async function bootstrap() {
     dotenv.config({ path: process.env.NODE_ENV === 'production' ? '.env' : '.env.local' });
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    app.setGlobalPrefix('api');
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(bodyParser.json());
     app.use((0, helmet_1.default)());

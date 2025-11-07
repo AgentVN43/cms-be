@@ -11,6 +11,7 @@ async function bootstrap() {
   // Load environment file depending on NODE_ENV (use .env.local for non-production)
   dotenv.config({ path: process.env.NODE_ENV === 'production' ? '.env' : '.env.local' });
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('api');
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json());
   app.use(helmet());
