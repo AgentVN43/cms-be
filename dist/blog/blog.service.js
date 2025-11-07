@@ -36,7 +36,12 @@ let BlogService = class BlogService {
     async findAll(page = 1, limit = 10) {
         const skip = (page - 1) * limit;
         const total = await this.blogModel.countDocuments();
-        const blogs = await this.blogModel.find().skip(skip).limit(limit).exec();
+        const blogs = await this.blogModel
+            .find()
+            .skip(skip)
+            .limit(limit)
+            .populate('category', 'name')
+            .exec();
         return {
             data: blogs,
             currentPage: page,

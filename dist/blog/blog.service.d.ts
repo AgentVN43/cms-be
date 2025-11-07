@@ -59,9 +59,9 @@ export declare class BlogService {
     constructor(blogModel: Model<Blog>, categoryModel: Model<CategoryDocument>);
     create(createBlogDto: CreateBlogDto, user: JwtPayload): Promise<Blog>;
     findAll(page?: number, limit?: number): Promise<{
-        data: (import("mongoose").Document<unknown, {}, Blog> & Omit<Blog & {
+        data: Omit<import("mongoose").Document<unknown, {}, Blog> & Omit<Blog & {
             _id: import("mongoose").Types.ObjectId;
-        }, never>)[];
+        }, never>, never>[];
         currentPage: number;
         totalPages: number;
         totalPosts: number;

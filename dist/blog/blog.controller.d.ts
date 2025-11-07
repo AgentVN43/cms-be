@@ -59,9 +59,9 @@ export declare class BlogController {
     constructor(blogService: BlogService, commentService: CommentService);
     create(createBlogDto: CreateBlogDto, req: any): Promise<Blog>;
     getAll(page: number, limit: number): Promise<{
-        data: (import("mongoose").Document<unknown, {}, Blog> & Omit<Blog & {
+        data: Omit<import("mongoose").Document<unknown, {}, Blog> & Omit<Blog & {
             _id: import("mongoose").Types.ObjectId;
-        }, never>)[];
+        }, never>, never>[];
         currentPage: number;
         totalPages: number;
         totalPosts: number;

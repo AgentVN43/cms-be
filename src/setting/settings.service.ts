@@ -45,22 +45,7 @@ export class SettingsService {
     };
   }
 
-  //   async update(dto: UpdateSettingsDto) {
-  //     const updated = await this.model
-  //       .findByIdAndUpdate(
-  //         SETTINGS_ID,
-  //         {
-  //           _id: SETTINGS_ID,
-  //           general: dto.general ?? DEFAULT_SETTINGS.general,
-  //           reading: dto.reading ?? DEFAULT_SETTINGS.reading,
-  //           extra: dto.extra ?? DEFAULT_SETTINGS.extra,
-  //         },
-  //         { new: true, upsert: true, setDefaultsOnInsert: true },
-  //       )
-  //       .lean();
-  //     return updated!;
-  //   }
-  async update(dto: Partial<UpdateSettingsDto>) {
+  async update(dto: UpdateSettingsDto) {
     const current = await this.getAdmin();
     const next = _.merge({}, DEFAULT_SETTINGS, current, dto); // DEFAULT -> current -> dto
     const updated = await this.model
@@ -70,6 +55,7 @@ export class SettingsService {
         setDefaultsOnInsert: true,
       })
       .lean();
-    return updated!;
+    if (!updated) throw new NotFoundException('UPDATE_FAILED');
+    return updated;
   }
 }
