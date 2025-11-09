@@ -110,6 +110,27 @@ let BlogService = class BlogService {
     async findByCategory(categoryName) {
         return this.blogModel.find({ category: categoryName }).exec();
     }
+    async findByCategoryPaginated(categoryName, page = 1, limit = 10) {
+        const skip = (page - 1) * limit;
+        const total = await this.blogModel.countDocuments({
+            category: categoryName,
+        });
+        const blogs = await this.blogModel
+            .find({ category: categoryName })
+            .skip(skip)
+            .limit(limit)
+            .populate('category', 'name')
+            .exec();
+        return {
+            data: blogs,
+            currentPage: page,
+            totalPages: Math.ceil(total / limit),
+            totalPosts: total,
+            category: blogs.length
+                ? (blogs[0].category && blogs[0].category.name) || null
+                : null,
+        };
+    }
     async getAllTags() {
         const tags = await this.blogModel.aggregate([
             { $unwind: '$tags' },

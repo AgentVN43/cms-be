@@ -202,8 +202,17 @@ export class BlogController {
   @Get('category/:categoryName')
   async getBlogsByCategory(
     @Param('categoryName') categoryName: string,
-  ): Promise<Blog[]> {
-    return this.blogService.findByCategory(categoryName);
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    // Returns an object with `data`, pagination fields and `category` info (name/_id)
+    const result = await this.blogService.findByCategoryPaginated(
+      categoryName,
+      page,
+      limit,
+    );
+
+    return result;
   }
 
   /**

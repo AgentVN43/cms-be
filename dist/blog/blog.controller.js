@@ -85,8 +85,9 @@ let BlogController = class BlogController {
         const blogs = await this.blogService.getBlogsByAuthor(authorId);
         return blogs;
     }
-    async getBlogsByCategory(categoryName) {
-        return this.blogService.findByCategory(categoryName);
+    async getBlogsByCategory(categoryName, page = 1, limit = 10) {
+        const result = await this.blogService.findByCategoryPaginated(categoryName, page, limit);
+        return result;
     }
     async getAllTags() {
         const tags = await this.blogService.getAllTags();
@@ -216,8 +217,10 @@ __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Get)('category/:categoryName'),
     __param(0, (0, common_1.Param)('categoryName')),
+    __param(1, (0, common_1.Query)('page')),
+    __param(2, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Number, Number]),
     __metadata("design:returntype", Promise)
 ], BlogController.prototype, "getBlogsByCategory", null);
 __decorate([
